@@ -8,3 +8,10 @@ export interface IncomingMessage {
     type: string;
     payload: string;
 }
+
+export interface Pixels {
+    x: string;
+    y: string;
+    color: string;
+    size: number;
+}

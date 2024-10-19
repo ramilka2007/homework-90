@@ -2,7 +2,7 @@ import express from 'express';
 import expressWs from 'express-ws';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import type {ActiveConnections, IncomingMessage} from './types';
+import type {ActiveConnections, Pixels} from './types';
 import config from "./config";
 
 const app = express();
@@ -15,6 +15,7 @@ app.use(express.json());
 const router = express.Router();
 
 const activeConnections: ActiveConnections = {};
+let pixels: Pixels[] = []
 
 router.ws('/chat',  (ws, _req) => {
     const id = crypto.randomUUID();
@@ -22,26 +23,34 @@ router.ws('/chat',  (ws, _req) => {
     activeConnections[id] = ws;
 
     ws.on('message', (msg) => {
-        const decodedMessage = JSON.parse(msg.toString()) as IncomingMessage;
+        const decoded = JSON.parse(msg.toString());
 
-        switch (decodedMessage.type) {
-            case 'SET_USERNAME':
-                username = decodedMessage.payload;
-                break;
-            case 'SEND_MESSAGE':
+        switch (decoded.type) {
+            case 'CREATE_PIXELS_ARRAY':
                 Object.keys(activeConnections).forEach(connId => {
                     const conn = activeConnections[connId];
+
                     conn.send(JSON.stringify({
-                        type: 'NEW_MESSAGE',
-                        payload: {
-                            username,
-                            text: decodedMessage.payload
-                        }
+                        type: 'NEW_PIXELS_ARRAY',
+                        message: decoded.pixelsArray,
                     }));
                 });
+
+                pixels = [...pixels, ...decoded.pixelsArray];
+                break;
+            case 'CLEAR_CANVAS':
+                Object.keys(activeConnections).forEach(connId => {
+                    const conn = activeConnections[connId];
+
+                    conn.send(JSON.stringify({
+                        type: 'CLEAR_CANVAS',
+                    }));
+                });
+
+                pixels = [];
                 break;
             default:
-                console.log('Unknown message type:', decodedMessage.type);
+                console.log('Unknown message type: ', decoded.type);
         }
     });
 
