@@ -1,6 +1,6 @@
 export interface Pixels {
-    x: string;
-    y: string;
+    x: number;
+    y: number;
     color: string;
     size: number;
 }

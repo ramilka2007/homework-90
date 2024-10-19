@@ -17,7 +17,7 @@ const router = express.Router();
 const activeConnections: ActiveConnections = {};
 let pixels: Pixels[] = []
 
-router.ws('/chat',  (ws, _req) => {
+router.ws('/canvas',  (ws, _req) => {
     const id = crypto.randomUUID();
     console.log('client connected! id=', id);
     activeConnections[id] = ws;
